@@ -98,6 +98,8 @@ class _OverlayFaceState extends State<OverlayFace> {
     return null;
   }
 
+  var data;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,9 +115,13 @@ class _OverlayFaceState extends State<OverlayFace> {
                   controller: controller,
                   fit: BoxFit.contain,
                   onDetect: (data, args) {
+                    /// caution (*): Add code line: d.log() make app run delay.
+                    // d.log("${face.size}");
+                    /// This is the solution for (*)
+                    if(data == this.data) return;
+                    this.data = data;
+
                     setState(() {
-                      /// caution: Add code line: d.log() make app run delay.
-                      // d.log("${face.size}");
                       face = Data(
                           face: Face(
                             headEulerAngleX: data.face?.headEulerAngleX,
