@@ -94,8 +94,8 @@ class _MobileScannerState extends State<FaceDetection>
           });
           return ClipRect(
             child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
+              width: value.size.width,
+              height: value.size.height,
               child: FittedBox(
                 fit: widget.fit,
                 child: SizedBox(

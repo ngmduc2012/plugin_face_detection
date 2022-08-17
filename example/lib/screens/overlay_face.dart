@@ -109,8 +109,8 @@ class _OverlayFaceState extends State<OverlayFace> {
           return Stack(
             children: [
               SizedBox(
-                // height: 200,
-                // width: 200,
+                // height: 3000,
+                // width: 2000,
                 child: FaceDetection(
                   controller: controller,
                   fit: BoxFit.contain,
