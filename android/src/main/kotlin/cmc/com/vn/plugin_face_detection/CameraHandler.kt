@@ -377,13 +377,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
     var maxY: Int = NO_GUID
     var minZ: Int = NO_GUID
     var maxZ: Int = NO_GUID
+    var isSendFacceImage = false
     private fun guid(call: MethodCall, result: MethodChannel.Result) {
-        minX = call.argument("minX")!!
-        maxX = call.argument("maxX")!!
-        minY = call.argument("minY")!!
-        maxY = call.argument("maxY")!!
-        minZ = call.argument("minZ")!!
-        maxZ = call.argument("maxZ")!!
+
+        minX = call.argument("minX") ?: return
+        maxX = call.argument("maxX") ?: return
+        minY = call.argument("minY") ?: return
+        maxY = call.argument("maxY") ?: return
+        minZ = call.argument("minZ") ?: return
+        maxZ = call.argument("maxZ") ?: return
 
     }
 
@@ -647,6 +649,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             }
             /**(3)*/
             val bmp = BitmapUtils.getBitmap(imageProxy) ?: return
+
             /** guidDetection 12 */
             val croppedFace = resizeImage(cropFace(bmp, bounds))
             val faceImage =
@@ -656,8 +659,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             this.maxX = NO_GUID
             this.minY = NO_GUID
             this.maxY = NO_GUID
-            this.minZ = NO_GUID
-            this.maxZ = NO_GUID
+            this.minY = NO_GUID
+            this.maxY = NO_GUID
             sendResult(
                 FaceDetectionData(
                     FaceData(

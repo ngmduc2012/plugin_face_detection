@@ -132,6 +132,7 @@ class _OverlayFaceState extends State<OverlayFace> {
                             rotZ: data.rot?.rotZ,
                           ));
                       if (data.faceImage != null) {
+                        d.log("data.faceImage : ${data.faceImage}");
                         pathFaceImage = data.faceImage;
                       }
                       if (data.rot!.rotX != null) rotX = data.rot!.rotX;
