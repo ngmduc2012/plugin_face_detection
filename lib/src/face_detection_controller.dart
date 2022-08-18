@@ -49,7 +49,6 @@ class FaceDetectionController {
   final bool? torchEnabled;
   final bool? faceDetected;
 
-
   /// If provided, the scanner will only detect those specific formats.
   ///
   /// WARNING: On iOS, only 1 format is supported.
@@ -101,27 +100,25 @@ class FaceDetectionController {
         final state = TorchState.values[data as int? ?? 0];
         torchState.value = state;
         break;
-        /// Only work on android.
+
+      /// Only work on android.
       case 'faceAndroid':
         final face = Data.fromNative(
-            data as Map? ?? {},
+          data as Map? ?? {},
         );
         facesController.add(face);
         break;
       case 'barcodeMac':
         final face = Data.fromNative(
-            data as Map? ?? {},
+          data as Map? ?? {},
         );
-        facesController.add(face
-            );
+        facesController.add(face);
         break;
       case 'barcodeWeb':
         final face = Data.fromNative(
-            data as Map? ?? {},
+          data as Map? ?? {},
         );
-        facesController.add(face
-
-            );
+        facesController.add(face);
         break;
       default:
         throw UnimplementedError();
@@ -174,7 +171,9 @@ class FaceDetectionController {
     // Set the starting arguments for the camera
     final Map arguments = {};
     arguments['facing'] = facing.index;
-    if (ratio != null) arguments['ratio'] = ratio;
+    if (ratio != null) {
+      arguments['ratio'] = (ratio == Ratio.ratio_4_3) ? 0 : 1;
+    }
     if (torchEnabled != null) arguments['torch'] = torchEnabled;
     if (faceDetected != null) arguments['faceDetected'] = faceDetected;
 
@@ -343,9 +342,9 @@ class FaceDetectionController {
     }
   }
 
-
   /// takePicture
-  Future<void> takePicture(double boxWidth, double boxHeight, double boxTop, double boxLeft, double screenWidth, double screenHeight) async {
+  Future<void> takePicture(double boxWidth, double boxHeight, double boxTop,
+      double boxLeft, double screenWidth, double screenHeight) async {
     ensure('takePicture');
 
     try {

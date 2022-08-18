@@ -5,6 +5,7 @@ import 'face_detection_arguments.dart';
 import 'face_detection_controller.dart';
 import 'objects/data.dart';
 import 'objects/face.dart';
+import 'dart:developer' as d;
 
 
 enum Ratio { ratio_4_3, ratio_16_9 }
@@ -92,6 +93,10 @@ class _MobileScannerState extends State<FaceDetection>
               widget.onDetect(face, value! as FaceDetectionArguments);
             }
           });
+          // d.log("MediaQuery.of(context).size.width ${MediaQuery.of(context).size.width}");
+          // d.log("MediaQuery.of(context).size.height ${MediaQuery.of(context).size.height}");
+          // d.log("value.size.width ${value.size.width}");
+          // d.log("value.size.height ${value.size.height}");
           return ClipRect(
             child: SizedBox(
               width: MediaQuery.of(context).size.width,

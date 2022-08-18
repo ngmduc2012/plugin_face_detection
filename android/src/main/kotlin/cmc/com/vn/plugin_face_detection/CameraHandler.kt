@@ -158,7 +158,9 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             result.success(answer)
         } else {
             val facing: Int = call.argument<Int>("facing") ?: 0
-            val ratio: Int? = call.argument<Int>("ratio")
+            val ratio: Int? =
+//                AspectRatio.RATIO_16_9
+                call.argument<Int>("ratio")
             val torch: Boolean = call.argument<Boolean>("torch") ?: false
             val faceDetected: Boolean = call.argument<Boolean>("faceDetected") ?: true
             this.faceDetected = faceDetected
@@ -194,7 +196,12 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 // Build the preview to be shown on the Flutter texture
                 val previewBuilder = Preview.Builder()
                 if (ratio != null) {
-                    previewBuilder.setTargetAspectRatio(ratio)
+                    if(ratio == 0){
+                        previewBuilder.setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                    } else {
+                        previewBuilder.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                    }
+
                 }
                 preview = previewBuilder.build().apply { setSurfaceProvider(surfaceProvider) }
 
@@ -202,7 +209,11 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 val analysisBuilder = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 if (ratio != null) {
-                    analysisBuilder.setTargetAspectRatio(ratio)
+                    if(ratio == 0){
+                        analysisBuilder.setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                    } else {
+                        analysisBuilder.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                    }
                 }
                 val analysis = analysisBuilder.build().apply { setAnalyzer(executor, analyzer) }
 
