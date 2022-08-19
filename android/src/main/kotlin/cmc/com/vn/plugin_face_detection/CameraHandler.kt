@@ -140,6 +140,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         ActivityCompat.requestPermissions(activity, permissions, REQUEST_CODE)
     }
 
+    var facing: Int = 0
+
     @ExperimentalGetImage
     private fun start(call: MethodCall, result: MethodChannel.Result) {
         if (camera?.cameraInfo != null && preview != null && textureEntry != null) {
@@ -158,7 +160,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             )
             result.success(answer)
         } else {
-            val facing: Int = call.argument<Int>("facing") ?: 0
+            facing = call.argument<Int>("facing") ?: 0
             val ratio: Int? =
 //                AspectRatio.RATIO_16_9
                 call.argument<Int>("ratio")
@@ -1071,9 +1073,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
      * MÔ TẢ    :
      * (1) Lấy các giá trị của khung hình được gửi từ flutter
      * (2) Tạo file lưu dưới dạng cache.
-     * (3) Chuyển hình ảnh về dạng bitmap.
-     * (4) Tính toán khung hình được cắt.
-     * (5) Tạo flie và trả về kết quả là đường dẫn file.
+     * (3) Xử lý ảnh.
+     * (4) Tạo flie và trả về kết quả là đường dẫn file.
      * ################################################################################################
      */
     @ExperimentalGetImage
@@ -1089,49 +1090,32 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         result.success(null)
 
         /** takePicture 2 */
-        val file = File(activity.cacheDir, "${UUID.randomUUID()}.jpg")
-
+        val fileCrop = File(activity.cacheDir, "${UUID.randomUUID()}.jpg")
+        val file = File(activity.cacheDir, "${UUID.randomUUID()}TruePath.jpg")
         imageCapture.takePicture(ContextCompat.getMainExecutor(activity.applicationContext),
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
 
                     /** takePicture 3 */
-                    var bmp = imageProxyToBitmap(image)
-                    val rotation = image.imageInfo.rotationDegrees
-                    val matrix = Matrix()
-                    matrix.postRotate(rotation.toFloat())
-                    bmp = Bitmap.createBitmap(
-                        bmp,
-                        0,
-                        0,
-                        bmp.width,
-                        bmp.height,
-                        matrix,
-                        true
+                    processImage(
+                        boxWidth,
+                        boxHeight,
+                        boxTop,
+                        boxLeft,
+                        screenWidth,
+                        screenHeight,
+                        fileCrop,
+                        file,
+                        image
                     )
-
                     /** takePicture 4 */
-                    val top = bmp.height * boxTop / screenHeight
-                    val croppedHeight = boxHeight * (bmp.height / screenHeight)
-                    val croppedWidth = croppedHeight * boxWidth / boxHeight
-                    val left = (bmp.width - croppedWidth) / 2
-
-                    /** takePicture 5 */
-                    val bytes = Bitmap.createBitmap(
-                        bmp,
-                        left.toInt(),
-                        top.toInt(),
-                        croppedWidth.toInt(),
-                        croppedHeight.toInt()
-                    ).toJpeg(75)
-                    file.writeBytes(bytes)
                     sendResult(
                         FaceDetectionData(
                             null,
                             null,
                             null,
+                            fileCrop.absolutePath,
                             file.absolutePath,
-                            null,
                             null,
                             null
                         )
@@ -1157,6 +1141,98 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 
     }
 
+    //Xử lý hình ảnh
+    @SuppressWarnings("unchecked")
+    private fun processImage(
+        boxWidth: Double, boxHeight: Double, boxTop: Double, boxLeft: Double, screenWidth: Double,
+        screenHeight: Double, fileCrop: File, file: File, image: ImageProxy
+    ) {
+        val bmp = imageProxyToBitmap(image)
+
+        val rotation = image.imageInfo.rotationDegrees
+        val matrix = Matrix()
+        matrix.postRotate(rotation.toFloat())
+        val croppedWidth: Double
+        val croppedHeight: Double
+        val top: Double
+        val left: Double
+        val bytesFace: ByteArray
+        val bytes: ByteArray
+
+
+        // I. Xử lý hình ảnh nếu hình ảnh bị xoay.
+        // rotation = 0f
+        if (rotation == 0) {
+            top = bmp.height * boxTop / screenHeight
+            croppedHeight = boxHeight * bmp.height / screenHeight
+            croppedWidth = croppedHeight * boxWidth / boxHeight
+            left = (bmp.width - croppedWidth) / 2
+        }
+        // rotation = 90f/270f
+        else {
+            croppedWidth = bmp.width / screenHeight * boxHeight
+            croppedHeight = croppedWidth * boxWidth / boxHeight
+            top = (bmp.height - croppedHeight) / 2
+            // Camera Front
+            left = if (facing != 0) {
+                bmp.width - bmp.width / screenHeight * boxTop - croppedWidth
+            }
+            // Camera Back
+            else {
+                bmp.width / screenHeight * boxTop
+            }
+        }
+
+        // II. Crop hình ảnh
+        val bmpSelf = Bitmap.createScaledBitmap(
+            bmp,
+            (bmp.width * 0.3).toInt(),
+            (bmp.height * 0.3).toInt(),
+            true
+        )
+
+        bytesFace = Bitmap.createBitmap(
+            bmpSelf,
+            0,
+            0,
+            bmpSelf.width,
+            bmpSelf.height,
+            matrix,
+            true
+        ).toFlip(xFlip = true, yFlip = false).toJpeg(75)
+        file.writeBytes(bytesFace)
+        // Camera Front
+        if (facing != 0) {
+
+            bytes = Bitmap.createBitmap(
+                bmp,
+                left.toInt(),
+                top.toInt(),
+                croppedWidth.toInt(),
+                croppedHeight.toInt(),
+                matrix,
+                true
+            ).toFlip(xFlip = true, yFlip = false).toJpeg(75)
+        }
+        // Camera Back
+        else {
+            bytes = Bitmap.createBitmap(
+                bmp,
+                left.toInt(),
+                top.toInt(),
+                croppedWidth.toInt(),
+                croppedHeight.toInt(),
+                matrix,
+                true
+            ).toJpeg(75)
+
+        }
+
+        fileCrop.writeBytes(bytes)
+        image.close()
+
+    }
+
     @SuppressLint("UnsafeOptInUsageError")
     private fun eKYC(face: Face) {
         val rotX = face.headEulerAngleX
@@ -1166,13 +1242,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         val rightEyeOpenProbability = face.rightEyeOpenProbability
         val leftEyeOpenProbability = face.leftEyeOpenProbability
 
-//        Log.d("ok", "rotX: $rotX")
-//        Log.d("ok", "rotY: $rotY")
-//        Log.d("ok", "rotZ: $rotZ")
-//        Log.d("ok", "smileProb: $smileProb")
-//        Log.d("ok", "rightEyeOpenProbability: $rightEyeOpenProbability")
-//        Log.d("ok", "leftEyeOpenProbability: $leftEyeOpenProbability")
-
         var eKYCID: Int? = null
         //Detect the face in turn left depends rotY
         if (
@@ -1180,7 +1249,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             rotY > 18
         ) {
 //            Log.d("ok", "Turn left")
-//            path = "Turn left"
             eKYCID = 0
         }
         //detect the face in turn right depends rotY
@@ -1189,7 +1257,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             rotY < -18
         ) {
 //            Log.d("ok", "Turn right")
-//            path = "Turn right"
             eKYCID = 1
         } else if (rotX > -4 && rotX < 4 && rotZ > -4 && rotZ < 4 && rotY > -4 && rotY < 4 &&
             rightEyeOpenProbability != null && leftEyeOpenProbability != null
@@ -1197,20 +1264,17 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             //Detect look straight face
             if (rightEyeOpenProbability > 0.8f && leftEyeOpenProbability > 0.8f) {
 //                Log.d("ok", "Look straight")
-//                path = "Look straight"
                 eKYCID = 2
             }
             //Detect close just right eye
             else if (rightEyeOpenProbability > 0.3f && leftEyeOpenProbability < 0.1f) {
 //                Log.d("ok", "Close Right Eye")
-//                path = "Close Right Eye"
                 eKYCID = 3
             }
             //Detect close just left eye
 
             else if (rightEyeOpenProbability < 0.1f && leftEyeOpenProbability > 0.3f) {
 //                Log.d("ok", "Close Left Eye")
-//                path = "Close Left Eye"
                 eKYCID = 4
             }
 
@@ -1222,7 +1286,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             rotZ < -18
         ) {
 //            Log.d("ok", "Tilt head to the left")
-//            path = "Tilt head to the left"
             eKYCID = 5
         }
         //tilt your head to the right depends rotZ
@@ -1231,7 +1294,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             rotZ > 18
         ) {
 //            Log.d("ok", "Tilt head to the right")
-//            path = "Tilt head to the right"
             eKYCID = 6
         }
         //head down depends rotX
@@ -1240,7 +1302,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             rotX < -18
         ) {
 //            Log.d("ok", "head down")
-//            path = "head down"
             eKYCID = 7
         }
         //head up depends rotX
@@ -1249,13 +1310,11 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             rotX > 18
         ) {
 //            Log.d("ok", "head up")
-//            path = "head up"
             eKYCID = 8
         }
         //Detect the smiling face
         else if (smileProb != null && smileProb > 0.8f) {
 //            Log.d("ok", "Smiling")
-//            path = "Smiling"
             eKYCID = 9
 
         } else {

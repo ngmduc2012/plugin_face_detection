@@ -29,7 +29,8 @@ class _CaptureState extends State<Capture> {
   );
 
   bool isStarted = true;
-  String? pathFaceImage;
+  String? pathImage;
+  String? pathImageCrop;
   GlobalKey croppedBoxKeyDocCapture = GlobalKey();
 
   @override
@@ -65,7 +66,10 @@ class _CaptureState extends State<Capture> {
                             rotZ: data.rot?.rotZ,
                           ));
                       if (data.faceImage != null) {
-                        pathFaceImage = data.faceImage;
+                        pathImage = data.faceImage;
+                      }
+                      if (data.flippedFaceImage != null) {
+                        pathImageCrop = data.flippedFaceImage;
                       }
                     });
                   },
@@ -115,55 +119,99 @@ class _CaptureState extends State<Capture> {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
+                  height: 200,
                   alignment: Alignment.bottomCenter,
-                  height: 100,
                   color: Colors.black.withOpacity(0.4),
-                  child: Row(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Flexible(
-                          child: TextButton(
-                        onPressed: () async {
-                          if (croppedBoxKeyDocCapture.currentContext != null) {
-                            d.log("not null");
-                            final RenderBox renderBox = croppedBoxKeyDocCapture
-                                .currentContext!
-                                .findRenderObject() as RenderBox;
-                            final size = renderBox.size;
-                            final pos = renderBox.localToGlobal(Offset.zero);
-                            final screenSize = Get.size;
-                            d.log("get size");
-                            await controller.takePicture(
-                                size.width,
-                                size.height,
-                                pos.dy,
-                                pos.dx,
-                                screenSize.width,
-                                screenSize.height);
-                          }
-                        },
-                        child: const Text(
-                          "Chụp trong khung",
-                        ),
-                      )),
-                      pathFaceImage != null
-                          ? ExtendedImage.file(
-                              File(pathFaceImage!),
-                              fit: BoxFit.fill,
-                              shape: BoxShape.rectangle,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(5.0)),
-                            )
-                          : const SizedBox(),
-                      Flexible(
-                        child: TextButton(
-                          onPressed: () async {
-                            await controller.capture(false);
-                          },
-                          child: const Text(
-                            "Chụp toàn màn hình",
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          pathImage != null
+                              ? SizedBox(
+                                  height: 100,
+                                  child: ExtendedImage.file(
+                                    File(pathImage!),
+                                    fit: BoxFit.fill,
+                                    shape: BoxShape.rectangle,
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(5.0)),
+                                  ),
+                                )
+                              : const SizedBox(),
+                          pathImageCrop != null
+                              ? SizedBox(
+                                  height: 100,
+                                  child: ExtendedImage.file(
+                                    File(pathImageCrop!),
+                                    fit: BoxFit.fill,
+                                    shape: BoxShape.rectangle,
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(5.0)),
+                                  ),
+                                )
+                              : const SizedBox(),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Flexible(
+                              child: TextButton(
+                            onPressed: () async {
+                              if (croppedBoxKeyDocCapture.currentContext !=
+                                  null) {
+                                final RenderBox renderBox =
+                                    croppedBoxKeyDocCapture.currentContext!
+                                        .findRenderObject() as RenderBox;
+                                final size = renderBox.size;
+                                final pos =
+                                    renderBox.localToGlobal(Offset.zero);
+                                final screenSize = Get.size;
+                                await controller.takePicture(
+                                    size.width,
+                                    size.height,
+                                    pos.dy,
+                                    pos.dx,
+                                    screenSize.width,
+                                    screenSize.height);
+                              }
+                            },
+                            child: const Text(
+                              "Chụp trong khung",
+                            ),
+                          )),
+                          IconButton(
+                            color: Colors.white,
+                            icon: ValueListenableBuilder(
+                              valueListenable: controller.cameraFacingState,
+                              builder: (context, state, child) {
+                                if (state == null) {
+                                  return const Icon(Icons.camera_front);
+                                }
+                                switch (state as CameraFacing) {
+                                  case CameraFacing.front:
+                                    return const Icon(Icons.camera_front);
+                                  case CameraFacing.back:
+                                    return const Icon(Icons.camera_rear);
+                                }
+                              },
+                            ),
+                            iconSize: 32.0,
+                            onPressed: () => controller.switchCamera(),
                           ),
-                        ),
+                          Flexible(
+                            child: TextButton(
+                              onPressed: () async {
+                                await controller.capture(false);
+                              },
+                              child: const Text(
+                                "Chụp toàn màn hình",
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
