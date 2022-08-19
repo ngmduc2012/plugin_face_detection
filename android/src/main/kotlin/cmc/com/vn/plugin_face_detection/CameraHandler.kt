@@ -35,6 +35,7 @@ import java.io.File
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import java.nio.ByteBuffer
 import java.util.*
 
@@ -165,6 +166,9 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             val faceDetected: Boolean = call.argument<Boolean>("faceDetected") ?: true
             this.faceDetected = faceDetected
 
+            val iseKYC: Boolean = call.argument<Boolean>("iseKYC") ?: false
+            this.iseKYC = iseKYC
+
 
             val future = ProcessCameraProvider.getInstance(activity)
             val executor = ContextCompat.getMainExecutor(activity)
@@ -196,7 +200,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 // Build the preview to be shown on the Flutter texture
                 val previewBuilder = Preview.Builder()
                 if (ratio != null) {
-                    if(ratio == 0){
+                    if (ratio == 0) {
                         previewBuilder.setTargetAspectRatio(AspectRatio.RATIO_4_3)
                     } else {
                         previewBuilder.setTargetAspectRatio(AspectRatio.RATIO_16_9)
@@ -209,7 +213,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 val analysisBuilder = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 if (ratio != null) {
-                    if(ratio == 0){
+                    if (ratio == 0) {
                         analysisBuilder.setTargetAspectRatio(AspectRatio.RATIO_4_3)
                     } else {
                         analysisBuilder.setTargetAspectRatio(AspectRatio.RATIO_16_9)
@@ -315,9 +319,11 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                                 FaceData(
                                     faces.first().headEulerAngleX,
                                     faces.first().headEulerAngleY,
-                                    faces.first().headEulerAngleZ
+                                    faces.first().headEulerAngleZ,
+                                    null, null, null,
                                 ),
                                 faces.size,
+                                null,
                                 null,
                                 null,
                                 null,
@@ -335,8 +341,18 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 
     }
 
-    private var scanner = FaceDetection.getClient()
+    // Nhận diện cười, nháy mắt cần sử dụng FaceDetectorOptions
+    // Have to set FaceDetectorOptions for detect  smilingProbability, rightEyeOpenProbability, leftEyeOpenProbability
+    private var scanner = FaceDetection.getClient(
+        FaceDetectorOptions.Builder()
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+            .enableTracking()
+            .build()
+    )
     private var faceDetected = true
+    private var iseKYC = false
 
     @ExperimentalGetImage
     val analyzer = ImageAnalysis.Analyzer { imageProxy -> // YUV_420_888 format
@@ -359,9 +375,11 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                                 FaceData(
                                     faces.first().headEulerAngleX,
                                     faces.first().headEulerAngleY,
-                                    faces.first().headEulerAngleZ
+                                    faces.first().headEulerAngleZ,
+                                    null, null, null
                                 ),
                                 faces.size,
+                                null,
                                 null,
                                 null,
                                 null,
@@ -369,6 +387,9 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                             )
                         )
                         guidDetection(faces.first(), imageProxy, faces)
+                        if (iseKYC) {
+                            eKYC(faces.first())
+                        }
                     } else return@addOnSuccessListener
                 }
                 .addOnFailureListener { e -> Log.e(TAG, e.message, e) }
@@ -433,9 +454,11 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                     FaceData(
                         faces.first().headEulerAngleX,
                         faces.first().headEulerAngleY,
-                        faces.first().headEulerAngleZ
+                        faces.first().headEulerAngleZ,
+                        null, null, null
                     ),
                     faces.size,
+                    null,
                     null,
                     null,
                     null,
@@ -455,13 +478,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         11,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -476,13 +501,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         12,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -496,13 +523,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         0,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -516,13 +545,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         1,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -536,13 +567,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         3,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -556,13 +589,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         2,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -576,13 +611,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         5,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -596,13 +633,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         6,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -616,13 +655,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         7,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -636,13 +677,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         FaceData(
                             faces.first().headEulerAngleX,
                             faces.first().headEulerAngleY,
-                            faces.first().headEulerAngleZ
+                            faces.first().headEulerAngleZ,
+                            null, null, null
                         ),
                         faces.size,
                         8,
                         null,
                         null,
-                        null
+                        null,
+                        Rot(rotX, rotY, rotZ)
                     )
                 )
                 stopTimer()
@@ -677,13 +720,15 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                     FaceData(
                         faces.first().headEulerAngleX,
                         faces.first().headEulerAngleY,
-                        faces.first().headEulerAngleZ
+                        faces.first().headEulerAngleZ,
+                        null, null, null
                     ),
                     faces.size,
                     null,
                     faceImage,
                     flippedFaceImage,
-                    null
+                    null,
+                    Rot(rotX, rotY, rotZ)
                 )
             )
             stopTimer()
@@ -792,6 +837,9 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             "headEulerAngleX" to headEulerAngleX,
             "headEulerAngleY" to headEulerAngleY,
             "headEulerAngleZ" to headEulerAngleZ,
+            "smileProb" to smileProb,
+            "rightEyeOpenProbability" to rightEyeOpenProbability,
+            "leftEyeOpenProbability" to leftEyeOpenProbability,
         )
     private val Rot.data: Map<String, Float?>
         get() = mapOf(
@@ -806,6 +854,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             "guidID" to guidID,
             "faceImage" to faceImage,
             "flippedFaceImage" to flippedFaceImage,
+            "eKYCID" to eKYCID,
             "rot" to rot?.data,
         )
 
@@ -859,6 +908,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                     null,
                     null,
                     10,
+                    null,
                     null,
                     null,
                     null
@@ -946,12 +996,14 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                                             null,
                                             file.absolutePath,
                                             null,
+                                            null,
                                             null
                                         )
                                     )
                                 } else {
                                     sendResult(
                                         FaceDetectionData(
+                                            null,
                                             null,
                                             null,
                                             null,
@@ -979,6 +1031,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                                 null,
                                 file.absolutePath,
                                 null,
+                                null,
                                 null
                             )
                         )
@@ -988,6 +1041,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 
                 override fun onError(error: ImageCaptureException) {
                     FaceDetectionData(
+                        null,
                         null,
                         null,
                         null,
@@ -1078,6 +1132,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                             null,
                             file.absolutePath,
                             null,
+                            null,
                             null
                         )
                     )
@@ -1093,6 +1148,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                             null,
                             null,
                             null,
+                            null,
                             null
                         )
                     )
@@ -1101,5 +1157,129 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
+    private fun eKYC(face: Face) {
+        val rotX = face.headEulerAngleX
+        val rotY = face.headEulerAngleY
+        val rotZ = face.headEulerAngleZ
+        val smileProb = face.smilingProbability
+        val rightEyeOpenProbability = face.rightEyeOpenProbability
+        val leftEyeOpenProbability = face.leftEyeOpenProbability
 
+//        Log.d("ok", "rotX: $rotX")
+//        Log.d("ok", "rotY: $rotY")
+//        Log.d("ok", "rotZ: $rotZ")
+//        Log.d("ok", "smileProb: $smileProb")
+//        Log.d("ok", "rightEyeOpenProbability: $rightEyeOpenProbability")
+//        Log.d("ok", "leftEyeOpenProbability: $leftEyeOpenProbability")
+
+        var eKYCID: Int? = null
+        //Detect the face in turn left depends rotY
+        if (
+            rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
+            rotY > 18
+        ) {
+//            Log.d("ok", "Turn left")
+//            path = "Turn left"
+            eKYCID = 0
+        }
+        //detect the face in turn right depends rotY
+        else if (
+            rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
+            rotY < -18
+        ) {
+//            Log.d("ok", "Turn right")
+//            path = "Turn right"
+            eKYCID = 1
+        } else if (rotX > -4 && rotX < 4 && rotZ > -4 && rotZ < 4 && rotY > -4 && rotY < 4 &&
+            rightEyeOpenProbability != null && leftEyeOpenProbability != null
+        ) {
+            //Detect look straight face
+            if (rightEyeOpenProbability > 0.8f && leftEyeOpenProbability > 0.8f) {
+//                Log.d("ok", "Look straight")
+//                path = "Look straight"
+                eKYCID = 2
+            }
+            //Detect close just right eye
+            else if (rightEyeOpenProbability > 0.3f && leftEyeOpenProbability < 0.1f) {
+//                Log.d("ok", "Close Right Eye")
+//                path = "Close Right Eye"
+                eKYCID = 3
+            }
+            //Detect close just left eye
+
+            else if (rightEyeOpenProbability < 0.1f && leftEyeOpenProbability > 0.3f) {
+//                Log.d("ok", "Close Left Eye")
+//                path = "Close Left Eye"
+                eKYCID = 4
+            }
+
+
+        }
+        //tilt your head to the left depends rotZ
+        else if (
+            rotX > -10 && rotX < 10 && rotY > -10 && rotY < 10 &&
+            rotZ < -18
+        ) {
+//            Log.d("ok", "Tilt head to the left")
+//            path = "Tilt head to the left"
+            eKYCID = 5
+        }
+        //tilt your head to the right depends rotZ
+        else if (
+            rotX > -10 && rotX < 10 && rotY > -10 && rotY < 10 &&
+            rotZ > 18
+        ) {
+//            Log.d("ok", "Tilt head to the right")
+//            path = "Tilt head to the right"
+            eKYCID = 6
+        }
+        //head down depends rotX
+        else if (
+            rotY > -6 && rotY < 6 && rotZ > -6 && rotZ < 6 &&
+            rotX < -18
+        ) {
+//            Log.d("ok", "head down")
+//            path = "head down"
+            eKYCID = 7
+        }
+        //head up depends rotX
+        else if (
+            rotY > -6 && rotY < 6 && rotZ > -6 && rotZ < 6 &&
+            rotX > 18
+        ) {
+//            Log.d("ok", "head up")
+//            path = "head up"
+            eKYCID = 8
+        }
+        //Detect the smiling face
+        else if (smileProb != null && smileProb > 0.8f) {
+//            Log.d("ok", "Smiling")
+//            path = "Smiling"
+            eKYCID = 9
+
+        } else {
+            eKYCID = null
+        }
+
+        sendResult(
+            FaceDetectionData(
+                FaceData(
+                    rotX,
+                    rotY,
+                    rotZ,
+                    smileProb,
+                    rightEyeOpenProbability,
+                    leftEyeOpenProbability,
+                ),
+                null,
+                null,
+                null,
+                null,
+                eKYCID,
+                null
+            )
+        )
+
+    }
 }

@@ -27,7 +27,6 @@ class _OverlayFaceState extends State<OverlayFace> {
     facing: CameraFacing.front,
   );
 
-  bool isStarted = true;
   int distance = 4;
   late int minX;
   late int maxX;

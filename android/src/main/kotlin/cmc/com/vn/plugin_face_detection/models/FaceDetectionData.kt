@@ -6,5 +6,6 @@ class FaceDetectionData(
     val guidID: Int?,
     val faceImage: String?,
     val flippedFaceImage: String?,
+    val eKYCID: Int?,
     val rot: Rot?,
 )

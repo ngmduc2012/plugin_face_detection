@@ -7,6 +7,7 @@ class Data {
   final int? guidID;
   final String? faceImage;
   final String? flippedFaceImage;
+  final int? eKYCID;
   final Rot? rot;
 
   Data(
@@ -15,6 +16,7 @@ class Data {
       this.guidID,
       this.faceImage,
       this.flippedFaceImage,
+        this.eKYCID,
       this.rot});
 
   /// Create a [face] from native data.
@@ -25,5 +27,6 @@ class Data {
         guidID = data['guidID'] as int?,
         faceImage = data['faceImage'] as String?,
         flippedFaceImage = data['flippedFaceImage'] as String?,
+        eKYCID = data['eKYCID'] as int?,
         rot = Rot.fromNative(data['rot'] as Map? ?? {});
 }

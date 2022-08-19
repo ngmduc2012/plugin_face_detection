@@ -48,6 +48,7 @@ class FaceDetectionController {
   final Ratio? ratio;
   final bool? torchEnabled;
   final bool? faceDetected;
+  final bool? iseKYC;
 
   /// If provided, the scanner will only detect those specific formats.
   ///
@@ -68,6 +69,7 @@ class FaceDetectionController {
     this.ratio,
     this.torchEnabled,
     this.faceDetected,
+    this.iseKYC,
     // this.formats,
     this.autoResume = true,
   }) {
@@ -176,6 +178,7 @@ class FaceDetectionController {
     }
     if (torchEnabled != null) arguments['torch'] = torchEnabled;
     if (faceDetected != null) arguments['faceDetected'] = faceDetected;
+    if (iseKYC != null) arguments['iseKYC'] = iseKYC;
 
     // if (formats != null) {
     //   if (Platform.isAndroid) {

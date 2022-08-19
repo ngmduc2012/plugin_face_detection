@@ -9,6 +9,7 @@ class Data {
   final int? guidID;
   final String? faceImage;
   final String? flippedFaceImage;
+  final int? eKYCID;
   final Rot? rot;
 
   Data(
@@ -17,6 +18,7 @@ class Data {
         this.guidID,
         this.faceImage,
         this.flippedFaceImage,
+        this.eKYCID,
         this.rot});
 
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plugin_face_detection_example/screens/capture.dart';
+import 'package:plugin_face_detection_example/screens/eKYC.dart';
 import 'package:plugin_face_detection_example/screens/overlay_face.dart';
 import 'package:plugin_face_detection_example/screens/without_controller.dart';
 
@@ -59,6 +60,15 @@ class MyHome extends StatelessWidget {
                 );
               },
               child: const Text('Overlay image'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Ekyc()),
+                );
+              },
+              child: const Text('eKYC'),
             ),
           ],
         ),
