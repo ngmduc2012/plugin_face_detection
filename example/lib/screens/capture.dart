@@ -27,7 +27,7 @@ class _CaptureState extends State<Capture> {
     ratio: (MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.shortestSide < 600 ? false : true) ? Ratio.ratio_4_3 : Ratio.ratio_16_9,
 
     // formats: [BarcodeFormat.qrCode]
-    // facing: CameraFacing.front,
+    // facing: CameraFacing.back,
   );
 
   bool isStarted = true;
@@ -91,16 +91,16 @@ class _CaptureState extends State<Capture> {
                             backgroundBlendMode: BlendMode.dstOut),
                       ),
                       Align(
-                        alignment: Alignment.center,
+                        alignment: Alignment.topCenter,
                         child: Container(
+                          key: croppedBoxKeyDocCapture,
                           constraints: const BoxConstraints(
-                            maxWidth: 300,
+                            maxWidth: 350,
                           ),
                           padding: const EdgeInsets.only(
                             bottom: 16,
                           ),
                           child: AspectRatio(
-                            key: croppedBoxKeyDocCapture,
                             aspectRatio: 1.6,
                             child: Container(
                                 decoration: BoxDecoration(

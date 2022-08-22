@@ -1144,8 +1144,10 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
     //Xử lý hình ảnh
     @SuppressWarnings("unchecked")
     private fun processImage(
-        boxWidth: Double, boxHeight: Double, boxTop: Double, boxLeft: Double, screenWidth: Double,
-        screenHeight: Double, fileCrop: File, file: File, image: ImageProxy
+        boxWidth: Double, boxHeight: Double,
+        boxTop: Double, boxLeft: Double,
+        screenWidth: Double, screenHeight: Double,
+        fileCrop: File, file: File, image: ImageProxy
     ) {
         val bmp = imageProxyToBitmap(image)
 
@@ -1160,6 +1162,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         val bytes: ByteArray
 
 
+        Log.d("rotation", "Rotation: $rotation")
         // I. Xử lý hình ảnh nếu hình ảnh bị xoay.
         // rotation = 0f
         if (rotation == 0) {
@@ -1174,7 +1177,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             croppedHeight = croppedWidth * boxWidth / boxHeight
             top = (bmp.height - croppedHeight) / 2
             // Camera Front
-            left = if (facing != 0) {
+            left = if (facing == 0) {
                 bmp.width - bmp.width / screenHeight * boxTop - croppedWidth
             }
             // Camera Back
@@ -1202,8 +1205,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         ).toFlip(xFlip = true, yFlip = false).toJpeg(75)
         file.writeBytes(bytesFace)
         // Camera Front
-        if (facing != 0) {
-
+        if (facing == 0) {
+            Log.d("ok", "facing: ${facing}")
             bytes = Bitmap.createBitmap(
                 bmp,
                 left.toInt(),
@@ -1216,6 +1219,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         }
         // Camera Back
         else {
+            Log.d("ok", "left.toInt() : ${left.toInt()}")
+            Log.d("ok", "top.toInt() : ${top.toInt()}")
             bytes = Bitmap.createBitmap(
                 bmp,
                 left.toInt(),
