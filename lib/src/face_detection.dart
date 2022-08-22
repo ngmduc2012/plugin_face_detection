@@ -7,7 +7,6 @@ import 'objects/data.dart';
 import 'objects/face.dart';
 import 'dart:developer' as d;
 
-
 enum Ratio { ratio_4_3, ratio_16_9 }
 
 /// A widget showing a live camera preview.
@@ -87,7 +86,7 @@ class _MobileScannerState extends State<FaceDetection>
             if (!widget.allowDuplicates) {
               // if (lastScanned != face) {
               //   lastScanned = face.toString();
-                widget.onDetect(face, value! as FaceDetectionArguments);
+              widget.onDetect(face, value! as FaceDetectionArguments);
               // }
             } else {
               widget.onDetect(face, value! as FaceDetectionArguments);
@@ -97,21 +96,32 @@ class _MobileScannerState extends State<FaceDetection>
           // d.log("MediaQuery.of(context).size.height ${MediaQuery.of(context).size.height}");
           // d.log("value.size.width ${value.size.width}");
           // d.log("value.size.height ${value.size.height}");
+          /// Full screen camera following: https://medium.com/lightsnap/making-a-full-screen-camera-application-in-flutter-65db7f5d717b
+          final size = MediaQuery.of(context).size;
+          final deviceRatio = size.width / size.height;
+          final xScale = (value.size.width /
+              value.size.height) / deviceRatio;
+// Modify the yScale if you are in Landscape
+          const yScale = 1.0;
           return ClipRect(
             child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: FittedBox(
-                fit: widget.fit,
-                child: SizedBox(
-                  width: value.size.width,
-                  height: value.size.height,
-                  child: kIsWeb
-                      ? HtmlElementView(viewType: value.webId!)
-                      : Texture(textureId: value.textureId!),
-                ),
-              ),
-            ),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: kIsWeb
+                    ? FittedBox(
+                        fit: widget.fit,
+                        child: SizedBox(
+                            width: value.size.width,
+                            height: value.size.height,
+                            child: HtmlElementView(viewType: value.webId!)),
+                      )
+                    : AspectRatio(
+                        aspectRatio: deviceRatio,
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.diagonal3Values(xScale, yScale, 1),
+                          child:  Texture(textureId: value.textureId!),
+                        ))),
           );
         }
       },

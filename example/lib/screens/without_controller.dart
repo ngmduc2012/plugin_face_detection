@@ -13,6 +13,10 @@ class WithoutController extends StatefulWidget {
 class _WithoutControllerState extends State<WithoutController> {
   String? face;
 
+  FaceDetectionController controller = FaceDetectionController(
+    ratio: (MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.shortestSide < 600 ? false : true) ? Ratio.ratio_4_3 : Ratio.ratio_16_9,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,6 +29,7 @@ class _WithoutControllerState extends State<WithoutController> {
                 // height: 200,
                 // width: 200,
                 child: FaceDetection(
+                  controller: controller,
                   fit: BoxFit.contain,
                   onDetect: (faceNumber, args) {
                     setState(() {

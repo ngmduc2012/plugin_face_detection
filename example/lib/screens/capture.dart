@@ -24,6 +24,8 @@ class _CaptureState extends State<Capture> {
   FaceDetectionController controller = FaceDetectionController(
     torchEnabled: false,
     faceDetected: false,
+    ratio: (MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.shortestSide < 600 ? false : true) ? Ratio.ratio_4_3 : Ratio.ratio_16_9,
+
     // formats: [BarcodeFormat.qrCode]
     // facing: CameraFacing.front,
   );

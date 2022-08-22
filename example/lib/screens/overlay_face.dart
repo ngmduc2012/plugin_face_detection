@@ -22,7 +22,7 @@ class _OverlayFaceState extends State<OverlayFace> {
   Data? face;
   FaceDetectionController controller = FaceDetectionController(
     torchEnabled: false,
-    ratio: Ratio.ratio_16_9,
+    ratio: (MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.shortestSide < 600 ? false : true) ? Ratio.ratio_4_3 : Ratio.ratio_16_9,
     // formats: [BarcodeFormat.qrCode]
     facing: CameraFacing.front,
   );
