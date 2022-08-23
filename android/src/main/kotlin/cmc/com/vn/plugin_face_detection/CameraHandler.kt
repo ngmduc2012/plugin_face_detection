@@ -411,7 +411,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
     var maxY: Int = NO_GUID
     var minZ: Int = NO_GUID
     var maxZ: Int = NO_GUID
-    var isSendFacceImage = false
     private fun guid(call: MethodCall, result: MethodChannel.Result) {
 
         minX = call.argument("minX") ?: return
@@ -491,7 +490,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
             /** guidDetection 4 */
@@ -514,7 +514,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -536,7 +537,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -558,7 +560,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -580,7 +583,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -602,7 +606,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -624,7 +629,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -646,7 +652,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -668,7 +675,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
@@ -690,19 +698,27 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                         Rot(rotX, rotY, rotZ)
                     )
                 )
-                stopTimer()
+                firstMatch = 0L
+//                stopTimer()
                 return
             }
 
+            if (firstMatch == 0L) {
+                firstMatch = System.currentTimeMillis()
+            }
+
+            if (!allowTakeThePhoto(System.currentTimeMillis())) {
+                return
+            }
             /**(1)*/
-            if (!isRunningTimer) {
-                timer.start()
-            }
-
-
-            if (!isGetImageCallback) {
-                return
-            }
+//            if (!isRunningTimer) {
+//                timer.start()
+//            }
+//
+//
+//            if (!isGetImageCallback) {
+//                return
+//            }
             /**(3)*/
             val bmp = BitmapUtils.getBitmap(imageProxy) ?: return
 
@@ -711,12 +727,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             val faceImage =
                 writeFile("${UUID.randomUUID()}.jpg", croppedFace.toFlip(true, false).toJpeg())
             val flippedFaceImage = writeFile("${UUID.randomUUID()}.jpg", croppedFace.toJpeg())
-            this.minX = NO_GUID
-            this.maxX = NO_GUID
-            this.minY = NO_GUID
-            this.maxY = NO_GUID
-            this.minY = NO_GUID
-            this.maxY = NO_GUID
             sendResult(
                 FaceDetectionData(
                     FaceData(
@@ -733,7 +743,14 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                     Rot(rotX, rotY, rotZ)
                 )
             )
-            stopTimer()
+            firstMatch = 0L
+//            stopTimer()
+            this.minX = NO_GUID
+            this.maxX = NO_GUID
+            this.minY = NO_GUID
+            this.maxY = NO_GUID
+            this.minY = NO_GUID
+            this.maxY = NO_GUID
         }
     }
 
@@ -860,6 +877,30 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             "rot" to rot?.data,
         )
 
+    /**
+     * Đợi 0,5 giây chụp hình:
+     *
+     * [firstMatch] lưu thời gian đầu tiên tọa độ thỏa mãn. Các lần thỏa mãn tọa độ tiếp theo
+     * sẽ so sánh thời gian hiện tại và [firstMatch] nếu lớn hơn 500 mili giây thì cho phép
+     * chụp hình. Trong khoảng thười gian so sánh 500 mili giây nếu tọa độ không thỏa mãn thì
+     * [firstMatch] = 0L, tức tính lại từ đầu.
+     * */
+    private var firstMatch: Long = 0L
+    private fun allowTakeThePhoto(timeNow: Long): Boolean {
+        sendResult(
+            FaceDetectionData(
+                null,
+                null,
+                10,
+                null,
+                null,
+                null,
+                null
+            )
+        )
+        return timeNow - firstMatch > 500 && firstMatch != 0L
+    }
+
 
     /**
      * ################################################################################################
@@ -897,42 +938,42 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
      * (5) [timer] sẽ được tính lại từ đầu khi tọa độ (x,y) không thỏa mãn điều kiện
      * ################################################################################################
      */
-    var isGetImageCallback: Boolean = false
-    var isRunningTimer: Boolean = false
-    private val timer = object : CountDownTimer(1250, 250) {
-        override fun onTick(millisUntilFinished: Long) {
-            isRunningTimer = true
-            /**(2)*/
-//            listener.onChangeGuide(10)
-//            Log.d("ok" , "$millisUntilFinished")
-            sendResult(
-                FaceDetectionData(
-                    null,
-                    null,
-                    10,
-                    null,
-                    null,
-                    null,
-                    null
-                )
-            )
-            /**(3)*/
-            if (millisUntilFinished <= 500) isGetImageCallback = true
-        }
-
-        /**(4)*/
-        override fun onFinish() {
-            isGetImageCallback = false
-            isRunningTimer = false
-        }
-    }
-
-    /**(5)*/
-    private fun stopTimer() {
-        timer.cancel()
-        isGetImageCallback = false
-        isRunningTimer = false
-    }
+//    var isGetImageCallback: Boolean = false
+//    var isRunningTimer: Boolean = false
+//    private val timer = object : CountDownTimer(1250, 250) {
+//        override fun onTick(millisUntilFinished: Long) {
+//            isRunningTimer = true
+//            /**(2)*/
+////            listener.onChangeGuide(10)
+////            Log.d("ok" , "$millisUntilFinished")
+//            sendResult(
+//                FaceDetectionData(
+//                    null,
+//                    null,
+//                    10,
+//                    null,
+//                    null,
+//                    null,
+//                    null
+//                )
+//            )
+//            /**(3)*/
+//            if (millisUntilFinished <= 500) isGetImageCallback = true
+//        }
+//
+//        /**(4)*/
+//        override fun onFinish() {
+//            isGetImageCallback = false
+//            isRunningTimer = false
+//        }
+//    }
+//
+//    /**(5)*/
+//    private fun stopTimer() {
+//        timer.cancel()
+//        isGetImageCallback = false
+//        isRunningTimer = false
+//    }
 
 
     /**
@@ -1162,7 +1203,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         val bytes: ByteArray
 
 
-        Log.d("rotation", "Rotation: $rotation")
+//        Log.d("rotation", "Rotation: $rotation")
         // I. Xử lý hình ảnh nếu hình ảnh bị xoay.
         // rotation = 0f
         if (rotation == 0) {
@@ -1206,7 +1247,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         file.writeBytes(bytesFace)
         // Camera Front
         if (facing == 0) {
-            Log.d("ok", "facing: ${facing}")
+//            Log.d("ok", "facing: ${facing}")
             bytes = Bitmap.createBitmap(
                 bmp,
                 left.toInt(),
@@ -1219,8 +1260,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
         }
         // Camera Back
         else {
-            Log.d("ok", "left.toInt() : ${left.toInt()}")
-            Log.d("ok", "top.toInt() : ${top.toInt()}")
+//            Log.d("ok", "left.toInt() : ${left.toInt()}")
+//            Log.d("ok", "top.toInt() : ${top.toInt()}")
             bytes = Bitmap.createBitmap(
                 bmp,
                 left.toInt(),
