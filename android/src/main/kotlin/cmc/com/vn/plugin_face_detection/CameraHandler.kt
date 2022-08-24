@@ -1356,13 +1356,18 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             }
             //Detect close just right eye
             else if (
-                rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability > 0.3f) && (leftEyeOpenProbability < 0.1f)) {
+                rightEyeOpenProbability != null
+                && leftEyeOpenProbability != null
+                && (rightEyeOpenProbability - leftEyeOpenProbability > 0.4f)) {
 //                Log.d("ok", "Close Right Eye")
                 eKYCID = 3
             }
             //Detect close just left eye
 
-            else if (rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability < 0.1f) && (leftEyeOpenProbability > 0.3f)) {
+            else if (rightEyeOpenProbability != null
+                && leftEyeOpenProbability != null
+                && (rightEyeOpenProbability - leftEyeOpenProbability < 0.4f)
+              ) {
 //                Log.d("ok", "Close Left Eye")
                 eKYCID = 4
             } else {
