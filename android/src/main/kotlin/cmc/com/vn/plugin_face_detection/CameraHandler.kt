@@ -371,7 +371,10 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 //                    for (face in faces) {
 //                        Log.d("face", faces.size.toString())
 //                    }
-                    if (faces.size > 0) {
+                    if (iseKYC) {
+                        eKYC(faces)
+                    }
+                    if (faces.size > 0 && !iseKYC) {
                         sendResult(
                             FaceDetectionData(
                                 FaceData(
@@ -389,9 +392,6 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                             )
                         )
                         guidDetection(faces.first(), imageProxy, faces)
-                        if (iseKYC) {
-                            eKYC(faces.first())
-                        }
                     } else return@addOnSuccessListener
                 }
                 .addOnFailureListener { e -> Log.e(TAG, e.message, e) }
@@ -1280,112 +1280,126 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
     }
 
     @SuppressLint("UnsafeOptInUsageError")
-    private fun eKYC(face: Face) {
-        val rotX = face.headEulerAngleX
-        val rotY = face.headEulerAngleY
-        val rotZ = face.headEulerAngleZ
-        val smileProb = face.smilingProbability
-        val rightEyeOpenProbability = face.rightEyeOpenProbability
-        val leftEyeOpenProbability = face.leftEyeOpenProbability
+    private fun eKYC(faces: List<Face>) {
+        if (faces.isNotEmpty()) {
+            val rotX = faces.first().headEulerAngleX
+            val rotY = faces.first().headEulerAngleY
+            val rotZ = faces.first().headEulerAngleZ
+            val smileProb = faces.first().smilingProbability
+            val rightEyeOpenProbability = faces.first().rightEyeOpenProbability
+            val leftEyeOpenProbability = faces.first().leftEyeOpenProbability
 
-        var eKYCID: Int? = null
-        //Detect the face in turn left depends rotY
-        if (
-            rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
-            rotY > 18
-        ) {
+            var eKYCID: Int? = null
+            //Detect the face in turn left depends rotY
+            if (
+                rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
+                rotY > 18
+            ) {
 //            Log.d("ok", "Turn left")
-            eKYCID = 0
-        }
-        //detect the face in turn right depends rotY
-        else if (
-            rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
-            rotY < -18
-        ) {
+                eKYCID = 0
+            }
+            //detect the face in turn right depends rotY
+            else if (
+                rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
+                rotY < -18
+            ) {
 //            Log.d("ok", "Turn right")
-            eKYCID = 1
-        } else if (rotX > -4 && rotX < 4 && rotZ > -4 && rotZ < 4 && rotY > -4 && rotY < 4 &&
-            rightEyeOpenProbability != null && leftEyeOpenProbability != null
-        ) {
-            //Detect look straight face
+                eKYCID = 1
+            } else if (rotX > -4 && rotX < 4 && rotZ > -4 && rotZ < 4 && rotY > -4 && rotY < 4 &&
+                rightEyeOpenProbability != null && leftEyeOpenProbability != null
+            ) {
+                //Detect look straight face
 //            if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f)) {
 //                Log.d("ok", "Look straight")
                 eKYCID = 2
 //            }
 
-        }
-        //tilt your head to the left depends rotZ
-        else if (
-            rotX > -10 && rotX < 10 && rotY > -10 && rotY < 10 &&
-            rotZ < -18
-        ) {
+            }
+            //tilt your head to the left depends rotZ
+            else if (
+                rotX > -10 && rotX < 10 && rotY > -10 && rotY < 10 &&
+                rotZ < -18
+            ) {
 //            Log.d("ok", "Tilt head to the left")
-            eKYCID = 5
-        }
-        //tilt your head to the right depends rotZ
-        else if (
-            rotX > -10 && rotX < 10 && rotY > -10 && rotY < 10 &&
-            rotZ > 18
-        ) {
+                eKYCID = 5
+            }
+            //tilt your head to the right depends rotZ
+            else if (
+                rotX > -10 && rotX < 10 && rotY > -10 && rotY < 10 &&
+                rotZ > 18
+            ) {
 //            Log.d("ok", "Tilt head to the right")
-            eKYCID = 6
-        }
-        //head down depends rotX
-        else if (
-            rotY > -6 && rotY < 6 && rotZ > -6 && rotZ < 6 &&
-            rotX < -18
-        ) {
+                eKYCID = 6
+            }
+            //head down depends rotX
+            else if (
+                rotY > -6 && rotY < 6 && rotZ > -6 && rotZ < 6 &&
+                rotX < -18
+            ) {
 //            Log.d("ok", "head down")
-            eKYCID = 7
-        }
-        //head up depends rotX
-        else if (
-            rotY > -6 && rotY < 6 && rotZ > -6 && rotZ < 6 &&
-            rotX > 18
-        ) {
+                eKYCID = 7
+            }
+            //head up depends rotX
+            else if (
+                rotY > -6 && rotY < 6 && rotZ > -6 && rotZ < 6 &&
+                rotX > 18
+            ) {
 //            Log.d("ok", "head up")
-            eKYCID = 8
-        }
-        //Detect the smiling face
-        else if (smileProb != null && smileProb > 0.7f) {
+                eKYCID = 8
+            }
+            //Detect the smiling face
+            else if (smileProb != null && smileProb > 0.7f) {
 //            Log.d("ok", "Smiling")
-            eKYCID = 9
+                eKYCID = 9
 
 
-        }
-        //Detect close just right eye
-        else if (
-            rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability > 0.3f) && (leftEyeOpenProbability < 0.1f)) {
+            }
+            //Detect close just right eye
+            else if (
+                rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability > 0.3f) && (leftEyeOpenProbability < 0.1f)) {
 //                Log.d("ok", "Close Right Eye")
-            eKYCID = 3
-        }
-        //Detect close just left eye
+                eKYCID = 3
+            }
+            //Detect close just left eye
 
-        else if (rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability < 0.1f) && (leftEyeOpenProbability > 0.3f)) {
+            else if (rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability < 0.1f) && (leftEyeOpenProbability > 0.3f)) {
 //                Log.d("ok", "Close Left Eye")
-            eKYCID = 4
-        } else {
-            eKYCID = null
-        }
+                eKYCID = 4
+            } else {
+                eKYCID = null
+            }
 
-        sendResult(
-            FaceDetectionData(
-                FaceData(
-                    rotX,
-                    rotY,
-                    rotZ,
-                    smileProb,
-                    rightEyeOpenProbability,
-                    leftEyeOpenProbability,
-                ),
-                null,
-                null,
-                null,
-                null,
-                eKYCID,
-                null
+            sendResult(
+                FaceDetectionData(
+                    FaceData(
+                        rotX,
+                        rotY,
+                        rotZ,
+                        smileProb,
+                        rightEyeOpenProbability,
+                        leftEyeOpenProbability,
+                    ),
+                    null,
+                    null,
+                    null,
+                    null,
+                    eKYCID,
+                    null
+                )
             )
-        )
 
+        } else {
+            sendResult(
+                FaceDetectionData(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    10,
+                    null
+                )
+            )
+        }
     }
 }

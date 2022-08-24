@@ -64,6 +64,9 @@ class _EkycState extends State<Ekyc> {
     if (eKYCID == 9) {
       return "Smiling";
     }
+    if (eKYCID == 10) {
+      return "No face on camera";
+    }
     return "No detect status";
   }
 
