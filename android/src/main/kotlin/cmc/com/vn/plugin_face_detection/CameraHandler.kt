@@ -1306,10 +1306,10 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 //            Log.d("ok", "Turn right")
                 eKYCID = 1
             } else if (rotX > -4 && rotX < 4 && rotZ > -4 && rotZ < 4 && rotY > -4 && rotY < 4 &&
-                rightEyeOpenProbability != null && leftEyeOpenProbability != null
+                rightEyeOpenProbability != null && leftEyeOpenProbability != null && smileProb != null
             ) {
                 //Detect look straight face
-            if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f)) {
+            if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f) && smileProb < 0.65f) {
 //                Log.d("ok", "Look straight")
                 eKYCID = 2
             }
