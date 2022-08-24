@@ -1309,10 +1309,10 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 rightEyeOpenProbability != null && leftEyeOpenProbability != null
             ) {
                 //Detect look straight face
-//            if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f)) {
+            if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f)) {
 //                Log.d("ok", "Look straight")
                 eKYCID = 2
-//            }
+            }
 
             }
             //tilt your head to the left depends rotZ
