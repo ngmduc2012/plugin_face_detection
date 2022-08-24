@@ -1308,22 +1308,10 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             rightEyeOpenProbability != null && leftEyeOpenProbability != null
         ) {
             //Detect look straight face
-            if (rightEyeOpenProbability > 0.8f && leftEyeOpenProbability > 0.8f) {
+//            if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f)) {
 //                Log.d("ok", "Look straight")
                 eKYCID = 2
-            }
-            //Detect close just right eye
-            else if (rightEyeOpenProbability > 0.3f && leftEyeOpenProbability < 0.1f) {
-//                Log.d("ok", "Close Right Eye")
-                eKYCID = 3
-            }
-            //Detect close just left eye
-
-            else if (rightEyeOpenProbability < 0.1f && leftEyeOpenProbability > 0.3f) {
-//                Log.d("ok", "Close Left Eye")
-                eKYCID = 4
-            }
-
+//            }
 
         }
         //tilt your head to the left depends rotZ
@@ -1363,6 +1351,19 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 //            Log.d("ok", "Smiling")
             eKYCID = 9
 
+
+        }
+        //Detect close just right eye
+        else if (
+            rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability > 0.3f) && (leftEyeOpenProbability < 0.1f)) {
+//                Log.d("ok", "Close Right Eye")
+            eKYCID = 3
+        }
+        //Detect close just left eye
+
+        else if (rightEyeOpenProbability != null && leftEyeOpenProbability != null && (rightEyeOpenProbability < 0.1f) && (leftEyeOpenProbability > 0.3f)) {
+//                Log.d("ok", "Close Left Eye")
+            eKYCID = 4
         } else {
             eKYCID = null
         }
