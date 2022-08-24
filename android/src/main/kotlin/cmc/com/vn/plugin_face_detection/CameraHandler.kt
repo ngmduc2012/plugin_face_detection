@@ -1347,7 +1347,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             eKYCID = 8
         }
         //Detect the smiling face
-        else if (smileProb != null && smileProb > 0.8f) {
+        else if (smileProb != null && smileProb > 0.7f) {
 //            Log.d("ok", "Smiling")
             eKYCID = 9
 
