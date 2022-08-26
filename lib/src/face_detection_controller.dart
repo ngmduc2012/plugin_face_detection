@@ -49,6 +49,7 @@ class FaceDetectionController {
   final bool? torchEnabled;
   final bool? faceDetected;
   final bool? iseKYC;
+  final bool? isFullScreen;
 
   /// If provided, the scanner will only detect those specific formats.
   ///
@@ -72,6 +73,7 @@ class FaceDetectionController {
     this.iseKYC,
     // this.formats,
     this.autoResume = true,
+    this.isFullScreen = false,
   }) {
     // In case a new instance is created before calling dispose()
     if (_controllerHashcode != null) {

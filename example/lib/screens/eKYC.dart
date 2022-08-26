@@ -26,6 +26,7 @@ class _EkycState extends State<Ekyc> {
     // formats: [BarcodeFormat.qrCode]
     facing: CameraFacing.front,
     iseKYC: true,
+      isFullScreen: true
   );
 
   @override
@@ -81,8 +82,8 @@ class _EkycState extends State<Ekyc> {
           return Stack(
             children: [
               SizedBox(
-                // height: 3000,
-                // width: 2000,
+                // height: 500,
+                // width: 100,
                 child: FaceDetection(
                   controller: controller,
                   fit: BoxFit.contain,
