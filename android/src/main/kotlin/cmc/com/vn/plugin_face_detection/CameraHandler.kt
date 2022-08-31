@@ -1309,10 +1309,10 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 rightEyeOpenProbability != null && leftEyeOpenProbability != null && smileProb != null
             ) {
                 //Detect look straight face
-            if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f) && smileProb < 0.65f) {
+                if ((rightEyeOpenProbability > 0.8f) && (leftEyeOpenProbability > 0.8f) && smileProb < 0.5f) {
 //                Log.d("ok", "Look straight")
-                eKYCID = 2
-            }
+                    eKYCID = 2
+                }
 
             }
             //tilt your head to the left depends rotZ
@@ -1348,7 +1348,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 eKYCID = 8
             }
             //Detect the smiling face
-            else if (smileProb != null && smileProb > 0.7f) {
+            else if (smileProb != null && smileProb > 0.55f) {
 //            Log.d("ok", "Smiling")
                 eKYCID = 9
 
@@ -1358,7 +1358,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             else if (
                 (rightEyeOpenProbability != null)
                 && (leftEyeOpenProbability != null)
-                && ((rightEyeOpenProbability/leftEyeOpenProbability) > 2)
+                && ((rightEyeOpenProbability / leftEyeOpenProbability) > 2)
             ) {
 //                Log.d("ok", "Close Right Eye")
                 eKYCID = 3
@@ -1367,8 +1367,8 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 
             else if ((rightEyeOpenProbability != null)
                 && (leftEyeOpenProbability != null)
-                && ((leftEyeOpenProbability/rightEyeOpenProbability) > 2)
-              ) {
+                && ((leftEyeOpenProbability / rightEyeOpenProbability) > 2)
+            ) {
 //                Log.d("ok", "Close Left Eye")
                 eKYCID = 4
             } else {
