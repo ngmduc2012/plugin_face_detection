@@ -473,7 +473,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             val imageWidth = if (swapDimension) imageProxy.height else imageProxy.width
             // Nếu mặt lớn hơn 3/4 kích cỡ ảnh thì sẽ hiển thị thông báo: đưa thiết bị ra xa khuôn mặt
             // If face size > 3/4 of image size, show the notification: Take the device away from your face
-            if (bounds.height() > imageHeight * 3 / 4 || bounds.width() > imageWidth * 3 / 4) {
+            if (bounds.height() > imageHeight * 3.6 / 4 || bounds.width() > imageWidth * 3.6 / 4) {
                 sendResult(
                     FaceDetectionData(
                         FaceData(
@@ -497,7 +497,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             /** guidDetection 4 */
             // Nếu mặt nhỏ hơn 1/4 kích cỡ ảnh thì sẽ hiển thị thông báo: đưa thiết bị lại gần khuôn mặt
             // If face size < 1/4 of image size, show the notification: Bring the device closer your face
-            if (bounds.height() < imageHeight * 1.5 / 4 || bounds.width() < imageWidth * 1.5 / 4) {
+            if (bounds.height() < imageHeight * 0.6 / 4 || bounds.width() < imageWidth * 0.6 / 4) {
                 sendResult(
                     FaceDetectionData(
                         FaceData(
