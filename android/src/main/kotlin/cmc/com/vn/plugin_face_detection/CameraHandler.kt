@@ -9,7 +9,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.net.Uri
-import android.os.CountDownTimer
 import android.util.Log
 import android.util.Size
 import android.view.Surface
@@ -434,8 +433,20 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
      * CHỨC NĂNG: Thông báo hướng dẫn lấy ảnh góc mặt & lấy ảnh góc mặt
      * MÔ TẢ    :
      * (1)
+     * (2)
+     * (3) Đảm bảo khung hình không bị giật, với tọa độ trong khoảng [distance] thì sẽ hiển thị tọa độ
+     * với tọa độ cũ lưu trước đó gồm [oldRotX], [oldRotY], [oldRotZ]. Còn nếu khoảng cách lớn hơn
+     * [distance] thì sẽ hiển thị chậm với công thức: Tọa độ cũ * [oldDistance] + Tọa độ mới * [newDistance]
+     * như vậy tọa độ hiển thị sẽ không bị giật khi di chuyển góc mặt nhanh.
      * ################################################################################################
      */
+    private var oldRotX = 0f
+    private var oldRotY = 0f
+    private var oldRotZ = 0f
+    private val distance = 4f
+    private val newDistance = 0.6
+    private val oldDistance = 0.3
+
     @SuppressLint("UnsafeOptInUsageError")
     private fun guidDetection(face: Face, imageProxy: ImageProxy, faces: List<Face>) {
         /** guidDetection 1 */
@@ -446,10 +457,46 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             val maxY = maxY
 
             /** guidDetection 2 */
-            val rotX =
+            var rotX =
                 (if (isImageFlipped) -1 else 1) * if (swapDimension) face.headEulerAngleY else face.headEulerAngleX
-            val rotY = -1 * if (swapDimension) face.headEulerAngleX else face.headEulerAngleY
-            val rotZ = face.headEulerAngleZ
+            var rotY = -1 * if (swapDimension) face.headEulerAngleX else face.headEulerAngleY
+            var rotZ = face.headEulerAngleZ
+
+            /** guidDetection 3 */
+            if (this.oldRotX == 0f) {
+                this.oldRotX = rotX
+            } else {
+                if ((this.oldRotX - rotX < distance && this.oldRotX - rotX >= 0) || (this.oldRotX - rotX > -distance && this.oldRotX - rotX <= 0)) {
+                    rotX = this.oldRotX
+                } else {
+                    rotX = (this.oldRotX*oldDistance + rotX*newDistance).toFloat()
+                    this.oldRotX = rotX
+                }
+            }
+
+            if (this.oldRotY == 0f) {
+                this.oldRotY = rotY
+            } else {
+                if ((this.oldRotY - rotY < distance && this.oldRotY - rotY >= 0) || (this.oldRotY - rotY > -distance && this.oldRotY - rotY <= 0)) {
+                    rotY = this.oldRotY
+                } else {
+                    rotY = (this.oldRotY*oldDistance + rotY*newDistance).toFloat()
+                    this.oldRotY = rotY
+                }
+            }
+
+            if (this.oldRotZ == 0f) {
+                this.oldRotZ = rotZ
+            } else {
+                if ((this.oldRotZ - rotZ < distance && this.oldRotZ - rotZ >= 0) || (this.oldRotZ - rotZ > -distance && this.oldRotZ - rotZ <= 0)) {
+                    rotZ = this.oldRotZ
+                } else {
+                    rotZ = (this.oldRotZ*oldDistance + rotZ*newDistance).toFloat()
+                    this.oldRotZ = rotZ
+                }
+            }
+
+
             sendResult(
                 FaceDetectionData(
                     FaceData(
@@ -467,7 +514,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 )
             )
 
-            /** guidDetection 3 */
+            /** guidDetection 4 */
             val bounds = face.boundingBox
             val imageHeight = if (swapDimension) imageProxy.width else imageProxy.height
             val imageWidth = if (swapDimension) imageProxy.height else imageProxy.width
@@ -494,7 +541,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 //                stopTimer()
                 return
             }
-            /** guidDetection 4 */
+            /** guidDetection 5 */
             // Nếu mặt nhỏ hơn 1/4 kích cỡ ảnh thì sẽ hiển thị thông báo: đưa thiết bị lại gần khuôn mặt
             // If face size < 1/4 of image size, show the notification: Bring the device closer your face
             if (bounds.height() < imageHeight * 0.6 / 4 || bounds.width() < imageWidth * 0.6 / 4) {
@@ -519,7 +566,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 4 */
+            /** guidDetection 5 */
             if (bounds.top < 0) {
                 sendResult(
                     FaceDetectionData(
@@ -542,7 +589,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 5 */
+            /** guidDetection 6 */
             if (bounds.top + bounds.height() > imageHeight) {
                 sendResult(
                     FaceDetectionData(
@@ -565,7 +612,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 6 */
+            /** guidDetection 7 */
             if (bounds.left < 0) {
                 sendResult(
                     FaceDetectionData(
@@ -588,7 +635,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 7 */
+            /** guidDetection 8 */
             if (bounds.left + bounds.width() > imageWidth) {
                 sendResult(
                     FaceDetectionData(
@@ -611,7 +658,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 8 */
+            /** guidDetection 9 */
             if (rotX > maxX) {
                 sendResult(
                     FaceDetectionData(
@@ -634,7 +681,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 9 */
+            /** guidDetection 10 */
             if (rotX < minX) {
                 sendResult(
                     FaceDetectionData(
@@ -657,7 +704,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 10 */
+            /** guidDetection 11 */
             if (rotY > maxY) {
                 sendResult(
                     FaceDetectionData(
@@ -680,7 +727,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
                 return
             }
 
-            /** guidDetection 11 */
+            /** guidDetection 12 */
             if (rotY < minY) {
                 sendResult(
                     FaceDetectionData(
@@ -722,7 +769,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             /**(3)*/
             val bmp = BitmapUtils.getBitmap(imageProxy) ?: return
 
-            /** guidDetection 12 */
+            /** guidDetection 13 */
             val croppedFace = resizeImage(cropFace(bmp, bounds))
             val faceImage =
                 writeFile("${UUID.randomUUID()}.jpg", croppedFace.toFlip(true, false).toJpeg())
