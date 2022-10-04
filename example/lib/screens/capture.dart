@@ -98,7 +98,8 @@ class _CaptureState extends State<Capture> {
                             maxWidth: 350,
                           ),
                           padding: const EdgeInsets.only(
-                            bottom: 16,
+                            top: 100,
+
                           ),
                           child: AspectRatio(
                             aspectRatio: 1.6,
