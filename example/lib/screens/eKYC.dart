@@ -26,7 +26,6 @@ class _EkycState extends State<Ekyc> {
     // formats: [BarcodeFormat.qrCode]
     facing: CameraFacing.front,
     iseKYC: true,
-      isFullScreen: true
   );
 
   @override

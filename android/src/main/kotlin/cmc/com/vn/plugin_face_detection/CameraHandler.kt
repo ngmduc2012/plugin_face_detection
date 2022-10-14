@@ -1338,10 +1338,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
 
             var eKYCID: Int? = null
             //Detect the face in turn left depends rotY
-            if (
-                rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
-                rotY > 18
-            ) {
+            if (checkFaceTurnLeft()) {
 //            Log.d("ok", "Turn left")
                 eKYCID = 0
             }
@@ -1455,4 +1452,7 @@ class CameraHandler(private val activity: Activity, private val textureRegistry:
             )
         }
     }
+
+    private fun checkFaceTurnLeft() = rotX > -6 && rotX < 6 && rotZ > -6 && rotZ < 6 &&
+            rotY > 18
 }
